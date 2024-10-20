@@ -1,0 +1,11 @@
+ let QueryRuntime =AzureDiagnostics
+ | where TimeGenerated between(datetime({starttime}) .. datetime({endtime})) and databasename_s == '{Database}' and collectionname_s == '{collection}' and Category == 'QueryRuntimeStatistics'
+|project TimeGenerated,partitionkeyrangeid_s,numberofrowsreturned_s,querytext_s,activityId_g;
+
+
+let Dataplane = AzureDiagnostics
+| where TimeGenerated between (datetime({starttime}) ..datetime({endtime}) ) and databaseName_s == "{Database}" and OperationName == "Query" and collectionName_s == '{collection}'
+|project activityId_g,OperationName,statusCode_s,duration_s,requestCharge_s,requestLength_s;
+
+QueryRuntime
+|join kind=inner Dataplane on $left.activityId_g == $right.activityId_g
